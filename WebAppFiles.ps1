@@ -78,7 +78,7 @@ function Get-WebAppPublishingCredentials
         [String]$WebAppName
     )
 
-    $xml = [xml](Get-AzureRmWebAppPublishingProfile -Name $WebAppName -ResourceGroupName $ResourceGroupName)
+    $xml = [xml](Get-AzWebAppPublishingProfile -Name $WebAppName -ResourceGroupName $ResourceGroupName)
 
     $username = $xml.SelectNodes("//publishProfile[@publishMethod=`"FTP`"]/@userName").value
     $password = $xml.SelectNodes("//publishProfile[@publishMethod=`"FTP`"]/@userPWD").value
