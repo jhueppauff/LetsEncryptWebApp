@@ -1,4 +1,4 @@
-#Requires -Modules ACMESharp, AzureRm
+#Requires -Modules ACMESharp
 
 param(
     [Parameter(Mandatory = $true)]
@@ -43,28 +43,28 @@ if ([string]::IsNullOrEmpty($WebAppName)) {
 }
 
 #Make sure we are logged into Azure
-$azcontext = Get-AzureRmContext
+$azcontext = Get-AzContext
 if ([string]::IsNullOrEmpty($azcontext.Account)) {
     throw "You must be logged into Azure to use this script"       
 }
 
 #Create Resource Group if it doesn't exsist
-$grp = Get-AzureRmResourceGroup -Name $ResourceGroupName -ErrorVariable NotPresent -ErrorAction 0
+$grp = Get-AzResourceGroup -Name $ResourceGroupName -ErrorVariable NotPresent -ErrorAction 0
 if ($NotPresent) {
-    $grp = New-AzureRmResourceGroup -Name $ResourceGroupName -Location $Location
+    $grp = New-AzResourceGroup -Name $ResourceGroupName -Location $Location
 }
 
 #Create app service plan if it doesn't exists already
 $aspName = "$WebAppName-asp"
-$asp = Get-AzureRmAppServicePlan -Name $aspName -ResourceGroupName $ResourceGroupName -ErrorVariable NotPresent -ErrorAction 0
+$asp = Get-AzAppServicePlan -Name $aspName -ResourceGroupName $ResourceGroupName -ErrorVariable NotPresent -ErrorAction 0
 if ($NotPresent) {
-    $asp = New-AzureRmAppServicePlan -Name $aspName -ResourceGroupName $ResourceGroupName -Location $Location -Tier Standard
+    $asp = New-AzAppServicePlan -Name $aspName -ResourceGroupName $ResourceGroupName -Location $Location -Tier Standard
 }
 
 #Create Web App if it doesn't exist already
-$app = Get-AzureRmWebApp -Name $WebAppName -ResourceGroupName $ResourceGroupName -ErrorVariable NotPresent -ErrorAction 0
+$app = Get-AzWebApp -Name $WebAppName -ResourceGroupName $ResourceGroupName -ErrorVariable NotPresent -ErrorAction 0
 if ($NotPresent) {
-    $app = New-AzureRmWebApp -Name $WebAppName -ResourceGroupName $ResourceGroupName -Location $Location -AppServicePlan $asp.Id
+    $app = New-AzWebApp -Name $WebAppName -ResourceGroupName $ResourceGroupName -Location $Location -AppServicePlan $asp.Id
 }
 
 $message = "Please ad a DNS CNAME entry from $Fqdn to " + $app.HostNames[0]
@@ -75,7 +75,7 @@ Read-Host "Hit enter when completed."
 $hosts = $app.HostNames
 if (!$hosts.Contains($Fqdn)) {
     $hosts.Add($Fqdn)
-    Set-AzureRmWebApp -Name $app.Name -ResourceGroupName $ResourceGroupName -HostNames $hosts
+    Set-AzWebApp -Name $app.Name -ResourceGroupName $ResourceGroupName -HostNames $hosts
 }
 
 #Create a VaultName if not supplied
@@ -170,7 +170,7 @@ if ([String]::IsNullOrEmpty($CertificatePath)) {
 Get-ACMECertificate $certName -ExportPkcs12 $CertificatePath -CertificatePassword (New-Object PSCredential "user",$CertificatePassword).GetNetworkCredential().Password -VaultProfile $VaultName
 
 #Bind the cert to the web app
-$binding = New-AzureRmWebAppSSLBinding `
+$binding = New-AzWebAppSSLBinding `
     -WebAppName $WebAppName `
     -ResourceGroupName $ResourceGroupName `
     -Name $Fqdn `
