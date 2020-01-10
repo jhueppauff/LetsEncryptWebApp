@@ -1,4 +1,4 @@
-#Requires -Modules ACMESharp
+#Requires -Modules ACMESharp, AZ
 
 param(
     [Parameter(Mandatory = $true)]
